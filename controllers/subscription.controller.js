@@ -55,7 +55,7 @@ export const updateSubscription = async (req, res, next) => {
     if (updates.length === 0) {
       const error = new Error("No valid fields provided for update");
       error.statusCode = 400;
-      return next(error);
+      throw error;
     }
 
     const invalidFields = updates.filter(
@@ -67,7 +67,7 @@ export const updateSubscription = async (req, res, next) => {
         `Invalid updates detected: ${invalidFields.join(", ")}`
       );
       error.statusCode = 400;
-      return next(error);
+      throw error;
     }
 
     const subscription = await Subscription.findById(req.params.id);
@@ -75,7 +75,7 @@ export const updateSubscription = async (req, res, next) => {
     if (!subscription) {
       const error = new Error("Subscription not found");
       error.statusCode = 404;
-      return next(error);
+      throw error;
     }
 
     if (subscription.user.toString() !== req.user._id.toString()) {
@@ -83,7 +83,7 @@ export const updateSubscription = async (req, res, next) => {
         "You are not authorized to update this subscription"
       );
       error.statusCode = 403;
-      return next(error);
+      throw error;
     }
 
     updates.forEach((key) => {
@@ -135,7 +135,7 @@ export const deleteSubscription = async (req, res, next) => {
         "You are not authorized to update this subscription"
       );
       error.statusCode = 403;
-      return next(error);
+      throw error;
     }
 
     await Subscription.findByIdAndDelete(subscription._id);
@@ -180,7 +180,7 @@ export const cancelledSubscription = async (req, res, next) => {
         "You are not authorized to update this subscription"
       );
       error.statusCode = 403;
-      return next(error);
+      throw error;
     }
 
     subscription.status = "cancelled";
