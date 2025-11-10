@@ -51,12 +51,21 @@ export const updateSubscription = async (req, res, next) => {
     ];
 
     const updates = Object.keys(req.body);
-    const isValidOperation = updates.every((key) =>
-      allowedUpdates.includes(key)
+
+    if (updates.length === 0) {
+      const error = new Error("No valid fields provided for update");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const invalidFields = updates.filter(
+      (field) => !allowedUpdates.includes(field)
     );
 
-    if (!isValidOperation) {
-      const error = new Error("Invalid updates detected");
+    if (invalidFields.length > 0) {
+      const error = new Error(
+        `Invalid updates detected: ${invalidFields.join(", ")}`
+      );
       error.statusCode = 400;
       return next(error);
     }
@@ -69,7 +78,6 @@ export const updateSubscription = async (req, res, next) => {
       return next(error);
     }
 
-    // Cegah akses ke subscription milik user lain
     if (subscription.user.toString() !== req.user._id.toString()) {
       const error = new Error(
         "You are not authorized to update this subscription"
@@ -78,10 +86,10 @@ export const updateSubscription = async (req, res, next) => {
       return next(error);
     }
 
-    // Apply update
-    updates.forEach((key) => (subscription[key] = req.body[key]));
+    updates.forEach((key) => {
+      subscription[key] = req.body[key];
+    });
 
-    // Jika frequency berubah, perbarui renewalDate otomatis
     if (updates.includes("frequency")) {
       const renewalPeriods = {
         daily: 1,
@@ -89,16 +97,19 @@ export const updateSubscription = async (req, res, next) => {
         monthly: 30,
         yearly: 365,
       };
-      subscription.renewalDate = new Date(subscription.startDate);
-      subscription.renewalDate.setDate(
-        subscription.renewalDate.getDate() +
-          renewalPeriods[subscription.frequency]
+
+      const newRenewalDate = new Date(subscription.startDate);
+      newRenewalDate.setDate(
+        newRenewalDate.getDate() + renewalPeriods[subscription.frequency]
       );
+
+      subscription.renewalDate = newRenewalDate;
     }
 
     await subscription.save();
 
     res.status(200).json({
+      success: true,
       message: "Subscription updated successfully",
       data: subscription,
     });
