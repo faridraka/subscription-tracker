@@ -38,7 +38,7 @@ export const createSubscription = async (req, res, next) => {
     const { workflowRunId } = await workflowClient.trigger({
       url: `${SERVER_URL}/api/v1/workflows/subscription/reminder`,
       body: {
-        subscriptionID: subscription.id,
+        subscriptionId: subscription.id,
       },
       headers: {
         "content-type": "application/json",
