@@ -1,0 +1,366 @@
+openapi : 3.0.0
+info: 
+  title: Subscription Tracker
+  description: |
+    A production-grade Subscription Management System API built to handle real users, real payments, and real business workflows.
+
+    This API uses JWT-based authentication, follows scalable architecture principles, and integrates cleanly with modern frontend applications. It is designed to support subscription lifecycles, user operations, and secure automation features.
+
+    Key Capabilities:
+    - **Advanced Rate Limiting & Bot Protection** powered by Arcjet.
+    - **MongoDB Data Modeling** using Mongoose for schemas, relations, and validations.
+    - **JWT Authentication** for secure user onboarding and session handling.
+    - **Subscription Management** including creation, updates, renewals, and expiration handling.
+    - **Global Error Handling** with consistent response formatting.
+    - **Logging Mechanisms** for debugging and app monitoring.
+    - **Email Reminders & Workflows** utilizing Upstash for automated notifications.
+    - Production-ready architecture emphasizing clean code, reusability, and maintainability.
+
+    [The Subscription Tracker repository](https://github.com/faridraka/subscription-tracker)
+  contact:
+    email: faridrakapratama@gmail.com
+servers:
+  - url: "{{SERVER_URL}}/api/v1"
+tags:
+  - name: Auth
+    description: Endpoints for authentication
+  - name: User
+    description:  Endpoints operations about user
+  - name: Subscription
+    description: Endpoints for subscription 
+security:
+  - bearerAuth: []
+paths:
+  # Auth Sign Up
+  /auth/sign-up:
+    post:
+      tags:
+        - Auth
+      security: []
+      summary: Create a new user account.
+      description: Register a new user with name, email, and password.
+      operationId: signUp
+      requestBody:
+        description: User data required for creating an account.
+        required: true
+        content:
+          application/json:
+            schemas:
+              $ref: '#/components/schemas/User'
+            required:
+            - name
+            - email
+            - password
+            example:
+              name: "Guest Name"
+              email: "guest@example.com"
+              password: "Guest@123"
+          application/x-www-form-urlencoded:
+            schemas:
+              $ref: '#/components/schemas/User'
+            required:
+            - name
+            - email
+            - password
+            example:
+              name: "Guest Name"
+              email: "guest@example.com"
+              password: "Guest@123"
+              
+      responses:
+        '201':
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "User created successfully"
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    _id: "6919c8ef0b0..."
+                    name: "Guest Name"
+                    email: "guest@example.com"
+                    password: "$2b$10$d287pd1ohIqDsu6gW0joQu0PVBxeu1viFkqk..."
+                    createdAt: "2025-11-16T12:51:59.036Z"
+                    updatedAt: "2025-11-16T12:51:59.036Z"
+                    __v: 0
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "User Name is required"
+        '409':
+          description: User already exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "User already exists"
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+  
+  # Auth Sign In
+  /auth/sign-in:
+    post:
+      tags:
+        - Auth
+      security: []
+      summary: Sign in to an existing user account.
+      description: Authenticate user using email and password to receive JWT token.
+      operationId: signIn
+      requestBody:
+        description: Credentials required to log in.
+        required: true
+        content:
+          application/json:
+            schemas:
+              $ref: '#/components/schemas/User'
+            required:
+            - email
+            - password
+            example:
+              email: "guest@example.com"
+              password: "Guest@123"
+          application/x-www-form-urlencoded:
+            schemas:
+              $ref: '#/components/schemas/User'
+            required:
+            - email
+            - password
+            example:
+              email: "guest@example.com"
+              password: "Guest@123"
+              
+      responses:
+        '200':
+          description: User signed in successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "User signed in successfully"
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    _id: "6919c8ef0b0..."
+                    name: "Guest Name"
+                    email: "guest@example.com"
+                    password: "$2b$10$d287pd1ohIqDsu6gW0joQu0PVBxeu1viFkqk..."
+                    createdAt: "2025-11-16T12:51:59.036Z"
+                    updatedAt: "2025-11-16T12:51:59.036Z"
+                    __v: 0
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "User Name is required"
+        '401':
+          description: Invalid Password.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Invalid Password"
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "User not found"
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+  # Auth Sign Out
+  /auth/sign-out:
+    post:
+      tags:
+        - Auth
+      security: []
+      summary: Sign out from current session.
+      description: Logs out the current user. Token must be removed on the client side.
+      operationId: signOut
+
+      responses:
+        '200':
+          description: User signed in successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "Signed out successfully. Please remove token on client side."
+        '429':
+            description: Too Many Requests
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  error: "Rate limit exceeded"
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+# Schemas 
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          description: "Hashed password"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        __v:
+          type: number
+    Subscription:
+      type: object
+      properties:
+        _id:  
+          type: string
+        name:  
+          type: string
+        price:  
+          type: number
+        currency:  
+          type: string
+        frequency:  
+          type: string
+        category:  
+          type: string
+        paymentMethod:  
+          type: string
+        status:  
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        renewalDate:
+          type: string
+          format: date-time
+        user:  
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        __v:  
+          type: number
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: string
+          nullable: true
+        data:
+          type: object
+          nullable: true
+  
+  # Security Schemas
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

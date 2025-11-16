@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import swaggerUi from 'swagger-ui-express'
 
 import { PORT } from "./config/env.js";
 
@@ -11,6 +12,7 @@ import workflowRouter from "./routes/workflow.routes.js";
 import connectToDatabase from "./database/mongodb.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
+import swaggerDocument from "./config/swagger.js";
 
 const app = express();
 
@@ -20,6 +22,7 @@ app.use(cookieParser());
 app.use(arcjetMiddleware);
 
 // Api Routes
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/subscriptions', subscriptionRouter);
