@@ -19,6 +19,6 @@ subscriptionRouter.delete('/:id', authorize, deleteSubscription);
 
 subscriptionRouter.get('/user/:id', authorize, getUsersSubscriptions);
 
-subscriptionRouter.put('/:id/cancel', authorize, cancelledSubscription);
+subscriptionRouter.patch('/:id/cancel', authorize, cancelledSubscription);
 
 export default subscriptionRouter;

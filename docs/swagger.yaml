@@ -55,17 +55,6 @@ paths:
               name: "Guest Name"
               email: "guest@example.com"
               password: "Guest@123"
-          application/x-www-form-urlencoded:
-            schemas:
-              $ref: '#/components/schemas/User'
-            required:
-            - name
-            - email
-            - password
-            example:
-              name: "Guest Name"
-              email: "guest@example.com"
-              password: "Guest@123"
               
       responses:
         '201':
@@ -147,15 +136,6 @@ paths:
         required: true
         content:
           application/json:
-            schemas:
-              $ref: '#/components/schemas/User'
-            required:
-            - email
-            - password
-            example:
-              email: "guest@example.com"
-              password: "Guest@123"
-          application/x-www-form-urlencoded:
             schemas:
               $ref: '#/components/schemas/User'
             required:
@@ -387,17 +367,6 @@ paths:
                   __v: 0
 
 
-        '404':
-          description: User not found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                success: false
-                message: "User not found"
-                error: "User not found"
-
         '401':
           description: Unauthorized.
           content:
@@ -408,6 +377,17 @@ paths:
                 success: false
                 message: "Unauthorized"
                 error: "Missing or invalid token"
+
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "User not found"
+                error: "User not found"
 
         '429':
             description: Too Many Requests
@@ -560,6 +540,832 @@ paths:
                 success: false
                 error: "Another error"
 
+# Subscription
+  /subscriptions:
+  # Get Subscriptions
+    get:
+      tags:
+        - Subscription
+      summary: Get all subscriptions
+      description: Retrieve a list of all subscriptions for the authenticated user or for admin overview.
+      operationId: getAllSubscriptions
+
+      security: []
+      responses:
+          '200':
+            description: Successfully fetched all subscriptions.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                examples:
+                  summary: Upcoming renewals found
+                  value:
+                    success: true
+                    count: 1
+                    data:
+                      - _id: "6916a301601cab3886b19efc"
+                        name: "My Skills"
+                        price: 10
+                        currency: "USD"
+                        frequency: "monthly"
+                        category: "entertainment"
+                        paymentMethod: "Credit Card"
+                        status: "active"
+                        startDate: "2025-10-16T03:00:00.000Z"
+                        renewalDate: "2025-11-15T03:00:00.000Z"
+                        user: "69081163061afb0b7010fba5"
+                        createdAt: "2025-11-14T03:33:21.238Z"
+                        updatedAt: "2025-11-14T03:33:21.238Z"
+                        __v: 0
+                      - _id: "6916a301601cab3886b19efc"
+                        name: "Netflix"
+                        price: 10
+                        currency: "USD"
+                        frequency: "monthly"
+                        category: "entertainment"
+                        paymentMethod: "Credit Card"
+                        status: "active"
+                        startDate: "2025-10-16T03:00:00.000Z"
+                        renewalDate: "2025-11-15T03:00:00.000Z"
+                        user: "69081163061afb0b7010fba5"
+                        createdAt: "2025-11-14T03:33:21.238Z"
+                        updatedAt: "2025-11-14T03:33:21.238Z"
+                        __v: 0
+
+          '401':
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  success: false
+                  message: "Unauthorized"
+                  error: "Missing or invalid token"
+
+          '429':
+            description: Too Many Requests
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  error: "Rate limit exceeded"
+
+          '500':
+            description: Internal server error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  success: false
+                  error: "Internal server error"
+                  message: "Something went wrong"
+
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  success: false
+                  error: "Another error"
+    
+    # Post Subscription
+    post:
+      tags:
+        - Subscription
+      summary: Create a new subscription
+      description: Create a new subscription for the authenticated user. Returns the created subscription and workflow run ID for reminder automation.
+      operationId: createSubscription
+      security:
+        - BearerAuth: []   # Auth required
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+            example:
+              name: "My Skills"
+              price: 10
+              currency: "USD"
+              frequency: "monthly"
+              category: "entertainment"
+              paymentMethod: "Credit Card"
+              status: "active"
+              startDate: "2025-10-16T03:00:00.000Z"
+
+      responses:
+        '201':
+          description: Subscription created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                data:
+                  subscription:
+                    _id: "6916a301601cab3886b19efc"
+                    name: "My Skills"
+                    price: 10
+                    currency: "USD"
+                    frequency: "monthly"
+                    category: "entertainment"
+                    paymentMethod: "Credit Card"
+                    status: "active"
+                    startDate: "2025-10-16T03:00:00.000Z"
+                    renewalDate: "2025-11-15T03:00:00.000Z"
+                    user: "69081163061afb0b7010fba5"
+                    createdAt: "2025-11-14T03:33:21.238Z"
+                    updatedAt: "2025-11-14T03:33:21.238Z"
+                    __v: 0
+                  workflowRunId: "wf_abc123_xyz789"
+
+        '400':
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Invalid input data"
+                error: "Validation failed"
+
+        '401':
+          description: Unauthorized. Token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+  /subscriptions/{id}:
+  # Get Subsciption
+    get:
+      tags:
+        - Subscription
+      summary: Get subscription by ID
+      description: Retrieve a subscription using its ID. Requires authentication.
+      operationId: getSubscription
+      security:
+        - BearerAuth: []   # Require token
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Subscription ID to fetch
+          schema:
+            type: string
+            example: "6916a301601cab3886b19efc"
+
+      responses:
+        '200':
+          description: Subscription retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "Subscription fetched successfully"
+                data:
+                  _id: "6916a301601cab3886b19efc"
+                  name: "My Skills"
+                  price: 10
+                  currency: "USD"
+                  frequency: "monthly"
+                  category: "entertainment"
+                  paymentMethod: "Credit Card"
+                  status: "active"
+                  startDate: "2025-10-16T03:00:00.000Z"
+                  renewalDate: "2025-11-15T03:00:00.000Z"
+                  user: "69081163061afb0b7010fba5"
+                  createdAt: "2025-11-14T03:33:21.238Z"
+                  updatedAt: "2025-11-14T03:33:21.238Z"
+                  __v: 0
+
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        '404':
+          description: Subscription not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Subscription not found"
+                error: "Subscription not found"
+
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+    # Update Subscription
+    put:
+      tags:
+        - Subscription
+      summary: Update subscription
+      description: Update an existing subscription. Only the owner can update it.
+      operationId: updateSubscription
+      security:
+        - BearerAuth: []   # Requires JWT token
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Subscription ID to update
+          schema:
+            type: string
+            example: "69202ff9c8ebf89d4b1ad432"
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+            example:
+              name: "My Skills"
+              price: 10
+              currency: "USD"
+              frequency: "monthly"
+              category: "entertainment"
+              paymentMethod: "Credit Card"
+
+      responses:
+        "200":
+          description: Subscription updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "Subscription updated successfully"
+                data:
+                  _id: "69202ff9c8ebf89d4b1ad432"
+                  name: "Netflix Premium"
+                  price: 120000
+                  currency: "IDR"
+                  frequency: "monthly"
+                  category: "Entertainment"
+                  paymentMethod: "Credit Card"
+                  renewalDate: "2025-12-12T10:00:00.000Z"
+                  updatedAt: "2025-11-18T12:20:00.000Z"
+
+        "400":
+          description: Invalid request body or invalid update field.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Invalid updates detected: pricee"
+                error: "Bad Request"
+
+        "401":
+          description: Unauthorized (missing/invalid token).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        "403":
+          description: Forbidden – user is not the owner.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "You are not authorized to update this subscription"
+                error: "Forbidden"
+
+        "404":
+          description: Subscription not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Subscription not found"
+                error: "Not Found"
+
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+    
+    # Delete subscription
+    delete:
+      tags:
+        - Subscription
+      summary: Delete subscription
+      description: Delete a subscription by ID. Only the owner can delete it.
+      operationId: deleteSubscription
+      security:
+        - BearerAuth: []   # Requires JWT token
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Subscription ID to delete
+          schema:
+            type: string
+            example: "69202ff9c8ebf89d4b1ad432"
+
+      responses:
+        "200":
+          description: Subscription deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "Subscription deleted successfully"
+
+        "401":
+          description: Unauthorized (missing or invalid token).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        "403":
+          description: Forbidden – user is not allowed to delete this subscription.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "You are not authorized to update this subscription"
+                error: "Forbidden"
+
+        "404":
+          description: Subscription not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Subscription not found"
+                error: "Not Found"
+
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+  # Cancel Subscription
+  /subscriptions/{id}/cancel:
+    patch:
+      tags:
+        - Subscription
+      summary: Cancel subscription
+      description: Cancel a subscription by ID. Only the owner can cancel it.
+      operationId: cancelSubscription
+      security:
+        - BearerAuth: []   # Requires JWT token
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Subscription ID to cancel
+          schema:
+            type: string
+            example: "69202ff9c8ebf89d4b1ad432"
+
+      responses:
+        "200":
+          description: Subscription cancelled successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "Subscription cancelled successfully"
+
+        "401":
+          description: Unauthorized (missing or invalid token).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        "403":
+          description: Forbidden – user is not allowed to update this subscription.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "You are not authorized to update this subscription"
+                error: "Forbidden"
+
+        "404":
+          description: Subscription not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Subscription not found"
+                error: "Not Found"
+
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+  # Get user subscription
+  /subscriptions/user/{id}:
+    get:
+      tags:
+        - Subscription
+      summary: Get subscriptions by user ID
+      description: Retrieve all subscriptions for a specific user. Requires authentication and the user can only access their own subscriptions.
+      operationId: getUsersSubscriptions
+      security:
+        - BearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID to fetch subscriptions for.
+          schema:
+            type: string
+            example: "69081163061afb0b7010fba5"
+
+      responses:
+        '200':
+          description: Subscriptions retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                data:
+                  - _id: "6916a301601cab3886b19efc"
+                    name: "My Skills"
+                    price: 10
+                    currency: "USD"
+                    frequency: "monthly"
+                    category: "entertainment"
+                    paymentMethod: "Credit Card"
+                    status: "active"
+                    startDate: "2025-10-16T03:00:00.000Z"
+                    renewalDate: "2025-11-15T03:00:00.000Z"
+                    user: "69081163061afb0b7010fba5"
+                    createdAt: "2025-11-14T03:33:21.238Z"
+                    updatedAt: "2025-11-14T03:33:21.238Z"
+                    __v: 0
+                  - _id: "6916a301601cab3886b19efc"
+                    name: "Netflix"
+                    price: 10
+                    currency: "USD"
+                    frequency: "monthly"
+                    category: "entertainment"
+                    paymentMethod: "Credit Card"
+                    status: "active"
+                    startDate: "2025-10-16T03:00:00.000Z"
+                    renewalDate: "2025-11-15T03:00:00.000Z"
+                    user: "69081163061afb0b7010fba5"
+                    createdAt: "2025-11-14T03:33:21.238Z"
+                    updatedAt: "2025-11-14T03:33:21.238Z"
+                    __v: 0
+
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        '403':
+          description: Forbidden — User cannot access another user's subscriptions.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "You are not authorized to access this account"
+                error: "Forbidden"
+
+        '404':
+          description: No subscriptions found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "No subscriptions found"
+                error: "Not found"
+
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+  # Get Upcoming renewals
+  /subscriptions/upcoming-renewals:
+    get:
+      tags:
+        - Subscription
+      summary: Get upcoming subscription renewals
+      description: |
+        Retrieve all active subscriptions that will renew within the next 7 days.  
+        Requires authentication.
+
+      operationId: getUpcomingRenewals
+      security:
+        - BearerAuth: []
+
+      responses:
+        '200':
+          description: Renewals found or empty.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              examples:
+                noUpcomingRenewals:
+                  summary: No renewals in next 7 days
+                  value:
+                    success: true
+                    message: "No upcoming renewals within the next 7 days"
+                    data: []
+                upcomingRenewals:
+                  summary: Upcoming renewals found
+                  value:
+                    success: true
+                    count: 1
+                    data:
+                      - _id: "6916a301601cab3886b19efc"
+                        name: "My Skills"
+                        price: 10
+                        currency: "USD"
+                        frequency: "monthly"
+                        category: "entertainment"
+                        paymentMethod: "Credit Card"
+                        status: "active"
+                        startDate: "2025-10-16T03:00:00.000Z"
+                        renewalDate: "2025-11-15T03:00:00.000Z"
+                        user: "69081163061afb0b7010fba5"
+                        createdAt: "2025-11-14T03:33:21.238Z"
+                        updatedAt: "2025-11-14T03:33:21.238Z"
+                        __v: 0
+
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+  
+
+
 
 # Schemas 
 components:
@@ -593,16 +1399,29 @@ components:
           type: string
         price:  
           type: number
-        currency:  
+        currency:
           type: string
-        frequency:  
+          enum: ["USD", "EUR", "GBP"]
+        frequency:
           type: string
-        category:  
+          enum: ["daily", "weekly", "monthly", "yearly"]
+          example: "monthly"
+        category:
           type: string
+          enum:
+            - sports
+            - news
+            - entertainment
+            - lifestyle
+            - technology
+            - finance
+            - politics
+            - other
         paymentMethod:  
           type: string
         status:  
           type: string
+          enum: ["active", "cancelled", "expired"]
         startDate:
           type: string
           format: date-time

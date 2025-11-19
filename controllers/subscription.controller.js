@@ -22,7 +22,7 @@ export const getSubscription = async (req, res, next) => {
       throw error;
     }
 
-    res.status(200).json({ success: true, data: subscription });
+    res.status(200).json({ success: true, message: "Subscription fetched successfully", data: subscription });
   } catch (error) {
     next(error);
   }
