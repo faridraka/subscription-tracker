@@ -29,7 +29,7 @@ tags:
   - name: Subscription
     description: Endpoints for subscription 
 security:
-  - bearerAuth: []
+  - BearerAuth: []
 paths:
   # Auth Sign Up
   /auth/sign-up:
@@ -113,7 +113,7 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
               example:
                 error: "Rate limit exceeded"
-        '500':
+        "500":
           description: Internal server error.
           content:
             application/json:
@@ -122,6 +122,7 @@ paths:
               example:
                 success: false
                 error: "Internal server error"
+                message: "Something went wrong"
         default:
           description: Unexpected error.
           content:
@@ -219,7 +220,7 @@ paths:
                 $ref: "#/components/schemas/ApiResponse"
               example:
                 error: "Rate limit exceeded"
-        '500':
+        "500":
           description: Internal server error.
           content:
             application/json:
@@ -228,6 +229,7 @@ paths:
               example:
                 success: false
                 error: "Internal server error"
+                message: "Something went wrong"
         default:
           description: Unexpected error.
           content:
@@ -266,7 +268,7 @@ paths:
                   $ref: "#/components/schemas/ApiResponse"
                 example:
                   error: "Rate limit exceeded"
-        '500':
+        "500":
           description: Internal server error.
           content:
             application/json:
@@ -275,6 +277,7 @@ paths:
               example:
                 success: false
                 error: "Internal server error"
+                message: "Something went wrong"
         default:
           description: Unexpected error.
           content:
@@ -284,6 +287,279 @@ paths:
               example:
                 success: false
                 error: "Another error"
+
+  # Get All users
+  /users/:
+    get:
+      tags:
+        - User
+      summary: Get all users
+      description: Retrieve a list of all registered users. Requires admin privileges depending on your system rules.
+      operationId: getAllUsers
+      security: []
+      responses:
+        "200":
+          description: Successfully fetched all users.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "Users fetched successfully"
+                data:
+                  - _id: "6919c8ef0b060fd29375f042"
+                    name: "Guest Name"
+                    email: "guest@example.com"
+                    createdAt: "2025-11-16T12:51:59.036Z"
+                    updatedAt: "2025-11-16T12:51:59.036Z"
+                    __v: 0
+                  - _id: "6919c8ef0b060fd29375f099"
+                    name: "John Doe"
+                    email: "john@example.com"
+                    createdAt: "2025-11-16T14:22:10.036Z"
+                    updatedAt: "2025-11-16T14:22:10.036Z"
+                    __v: 0
+        '429':
+            description: Too Many Requests
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  error: "Rate limit exceeded"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
+  /users/{id}:
+  # Get user by id
+    get:
+      tags:
+        - User
+      summary: Get user by ID
+      description: Retrieve a user using the user ID. Requires authentication.
+      operationId: getUser
+      security:
+        - BearerAuth: []   # User must send token
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID to fetch
+          schema:
+            type: string
+            example: "6919c8ef0b060fd29375f042"
+
+      responses:
+        '200':
+          description: User retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "User fetched successfully"
+                data:
+                  _id: "6919c8ef0b060fd29375f042"
+                  name: "Guest Name"
+                  email: "guest@example.com"
+                  createdAt: "2025-11-16T12:51:59.036Z"
+                  updatedAt: "2025-11-16T12:51:59.036Z"
+                  __v: 0
+
+
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "User not found"
+                error: "User not found"
+
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        '429':
+            description: Too Many Requests
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  error: "Rate limit exceeded"
+        "500":
+            description: Internal server error.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  success: false
+                  error: "Internal server error"
+                  message: "Something went wrong"
+        default:
+            description: Unexpected error.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ApiResponse"
+                example:
+                  success: false
+                  error: "Another error"
+
+  # Update user by id
+    put:
+      tags:
+        - User
+      summary: Update user information
+      description: Update the name or password of a user. Only the authenticated user can update their own account.
+      operationId: updateUser
+      security:
+        - BearerAuth: []     # Requires token
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: string
+            example: "6919c8ef0b060fd29375f042"
+
+      requestBody:
+        description: Fields can only be name or password.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+            example:
+              name: "Guest"
+              password: "newStrongPassword123"
+
+      responses:
+        '200':
+          description: User updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: "User updated successfully"
+                data:
+                  _id: "6919c8ef0b060fd29375f042"
+                  name: "Farid Raka"
+                  email: "farid@example.com"
+                  password: "$2b$10$xaSJUWBVLbik16Pu...."
+                  createdAt: "2025-11-16T12:51:59.036Z"
+                  updatedAt: "2025-11-18T15:22:11.036Z"
+                  __v: 0
+
+        '400':
+          description: Invalid fields or request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Invalid updates detected: role, createdAt"
+                error: "Invalid updates detected: role, createdAt"
+
+        '401':
+          description: Unauthorized — Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "Unauthorized"
+                error: "Missing or invalid token"
+
+        '403':
+          description: Forbidden — User is not allowed to update another user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "You are not authorized to update user"
+                error: "Forbidden"
+
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                message: "User not found"
+                error: "User not found"
+
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                error: "Rate limit exceeded"
+
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Internal server error"
+                message: "Something went wrong"
+
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: false
+                error: "Another error"
+
 
 # Schemas 
 components:
@@ -360,7 +636,7 @@ components:
   
   # Security Schemas
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
