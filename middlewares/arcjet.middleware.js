@@ -1,13 +1,21 @@
 import aj from "../config/arcjet.js";
 
 const arcjetMiddleware = async(req, res, next) => {
+  console.log("Request Info:", {
+    ip: req.ip,
+    ips: req.ips,
+    remoteAddress: req.socket.remoteAddress,
+    forwaded: req.headers["x-forwaded-for"],
+  });
   try {
-    const decision = await aj.protect(req, { requested: 1});
+    const decision = await aj.protect(req, { 
+	requested: 1,
+        ipSrc: req.ip 
+    });
 
     if(decision.isDenied()){
       if(decision.reason.isRateLimit()) return res.status(429).json({ error: "Rate limit exceeded"});
       if(decision.reason.isBot()) return res.status(403).json({ error: "Bot detected"});
-      
       return res.status(403).json({ error: 'Access Denied' });
     }
 
